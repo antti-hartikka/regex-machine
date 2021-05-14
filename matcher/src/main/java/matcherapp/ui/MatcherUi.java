@@ -4,8 +4,6 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -50,6 +48,16 @@ public class MatcherUi extends Application {
         stage.show();
 
         input.setOnKeyTyped(event -> {
+            if (input.getText().matches(pattern.getText())) {
+                output.setFill(Color.GREEN);
+                output.setText("we have a match!");
+            } else {
+                output.setFill(Color.RED);
+                output.setText("try again sweetie");
+            }
+        });
+
+        pattern.setOnKeyTyped(keyEvent -> {
             if (input.getText().matches(pattern.getText())) {
                 output.setFill(Color.GREEN);
                 output.setText("we have a match!");
