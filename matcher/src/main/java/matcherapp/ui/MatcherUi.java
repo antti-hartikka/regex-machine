@@ -3,6 +3,7 @@ package matcherapp.ui;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -10,7 +11,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+import matcherapp.domain.Matcher;
+
+/**
+ * simple user interface
+ */
 public class MatcherUi extends Application {
+
+    Matcher matcher = new Matcher();
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -35,6 +44,8 @@ public class MatcherUi extends Application {
         TextField pattern = new TextField();
         textFields.getChildren().add(input);
         textFields.getChildren().add(pattern);
+        Button button = new Button("match");
+        textFields.getChildren().add(button);
 
         Text output = new Text(null);
         HBox textBox = new HBox();
@@ -47,23 +58,16 @@ public class MatcherUi extends Application {
         stage.setTitle("RegexMachine");
         stage.show();
 
-        input.setOnKeyTyped(event -> {
-            if (input.getText().matches(pattern.getText())) {
+        button.setOnMouseClicked(mouseEvent -> {
+            long time = System.currentTimeMillis();
+            boolean regexResult = matcher.match(input.getText(), pattern.getText());
+            time = System.currentTimeMillis() - time;
+            if (regexResult) {
                 output.setFill(Color.GREEN);
-                output.setText("we have a match!");
+                output.setText("we have a match! (" + time + " ms)");
             } else {
                 output.setFill(Color.RED);
-                output.setText("try again sweetie");
-            }
-        });
-
-        pattern.setOnKeyTyped(keyEvent -> {
-            if (input.getText().matches(pattern.getText())) {
-                output.setFill(Color.GREEN);
-                output.setText("we have a match!");
-            } else {
-                output.setFill(Color.RED);
-                output.setText("try again sweetie");
+                output.setText("no match! (" + time + " ms)");
             }
         });
     }
