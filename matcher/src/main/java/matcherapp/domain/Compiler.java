@@ -8,49 +8,52 @@ import java.util.Stack;
  */
 public class Compiler {
 
+    public State getFirstState(String regex) {
+        Fragment f = compileNFAFragment(regex);
+        addFinalState(f);
+        return f.getInput();
+    }
+
     /**
      * Compiles NFA fragment from input string
      * @param regex Regex pattern to transform into NFA fragment
      * @return Compiled fragment
      */
-    public Fragment compileNFAFragment(String regex) {
+    private Fragment compileNFAFragment(String regex) {
         Stack<Fragment> stack = new Stack<>();
         char[] chars = regex.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
 
-            // lets concatenate fragments if there is no reason not to
+            // lets concatenate previous fragments if there is no reason not to
             if (stack.size() >= 2 && !(c == '+' || c == '{' || c == '*' || c == '?' || c == '|')) {
-                Fragment f2 = stack.pop();
-                Fragment f1 = stack.pop();
-                stack.push(concatFragments(f1, f2));
+                concatTwoFragmentsInStack(stack);
             }
 
             switch (c) {
-                case '(' -> i = handleParenthesis(stack, chars, i);
-                case '|' -> i = handleVerticalBar(stack, chars, i);
-                case '?' -> handleQuestionMark(stack);
-                case '+' -> handlePlus(stack);
-                default -> stack.push(new Fragment(new State(c)));
+                case '(':
+                    i = handleParenthesis(stack, chars, i);
+                    break;
+                case '|':
+                    i = handleVerticalBar(stack, chars, i);
+                    break;
+                case '?':
+                    handleQuestionMark(stack);
+                    break;
+                case '+':
+                    handlePlus(stack);
+                    break;
+                default:
+                    stack.push(new Fragment(new State(c)));
             }
         }
 
         // lets concatenate all fragments if there are more than one
         while (stack.size() > 1) {
-            Fragment f2 = stack.pop();
-            Fragment f1 = stack.pop();
-            stack.push(concatFragments(f1, f2));
+            concatTwoFragmentsInStack(stack);
         }
 
-        // create state that is final match and connect it to the end of each final state
-        Fragment f = stack.pop();
-        State match = new State(null);
-        match.setToMatch();
-        for (State s : f.getOutputs()) {
-            s.setOut(match);
-        }
-
-        return f;
+        return stack.pop();
     }
 
     /**
@@ -99,7 +102,7 @@ public class Compiler {
         int parenthesesCounter = 0;
         i++;
         char c = chars[i];
-        while (c != ')' || parenthesesCounter != 0){
+        while (c != ')' || parenthesesCounter != 0) {
             if (c == '(') {
                 parenthesesCounter++;
             } else if (c == ')') {
@@ -161,14 +164,29 @@ public class Compiler {
             State split = new State(null);
             split.setToSplit();
             split.setOut1(f.getInput());
-            s.setOut(split);
             splits.add(split);
+
+            s.setOut(split);
         }
         f.getOutputs().clear();
         for (State split : splits) {
             f.pushOutput(split);
         }
         stack.push(f);
+    }
+
+    private void addFinalState(Fragment f) {
+        State match = new State(null);
+        match.setToMatch();
+        for (State s : f.getOutputs()) {
+            s.setOut(match);
+        }
+    }
+
+    private void concatTwoFragmentsInStack(Stack<Fragment> stack) {
+        Fragment f2 = stack.pop();
+        Fragment f1 = stack.pop();
+        stack.push(concatFragments(f1, f2));
     }
 
 }

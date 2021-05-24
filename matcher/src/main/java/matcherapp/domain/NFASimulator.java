@@ -77,7 +77,7 @@ public class NFASimulator {
      */
     private boolean isMatch() {
         for (State s : currentStates) {
-            if(s.isMatch()) {
+            if (s.isMatch()) {
                 return true;
             }
         }

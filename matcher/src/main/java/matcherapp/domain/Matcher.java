@@ -10,9 +10,8 @@ public class Matcher {
      */
     public boolean match(String text, String pattern) {
         Compiler compiler = new Compiler();
-        Fragment fragment = compiler.compileNFAFragment(pattern);
-        State start = fragment.getInput();
-        NFASimulator simulator = new NFASimulator(start);
+        State firstState = compiler.getFirstState(pattern);
+        NFASimulator simulator = new NFASimulator(firstState);
         return simulator.match(text);
     }
 
