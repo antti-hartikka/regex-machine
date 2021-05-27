@@ -6,6 +6,7 @@ In the following weeks, I will design and implement a regular expression engine.
 ## Documentation
 
 [Project specification](https://github.com/antti-hartikka/regex-machine/blob/main/documentation/project-specification.md)
+
 [Weekly reports](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/weekly-reports)
 
 ## How to..
