@@ -1,6 +1,6 @@
 package matcherapp.domain;
 
-import java.util.HashSet;
+import matcherapp.utils.CharacterSet;
 
 /**
  * Represents a single state in NFA. State can funcion as a split or final match, and in these
@@ -8,19 +8,19 @@ import java.util.HashSet;
  */
 public class State {
 
-    private HashSet<Character> set;
+    private CharacterSet set;
     private State out;
     private State out1;
     private int lastList;
     private boolean isMatch = false;
     private boolean isSplit = false;
 
-    public State(HashSet<Character> set) {
+    public State(CharacterSet set) {
         this.set = set;
     }
 
     public State(char c) {
-        set = new HashSet<>();
+        set = new CharacterSet();
         set.add(c);
     }
 

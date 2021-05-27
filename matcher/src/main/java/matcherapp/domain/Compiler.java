@@ -1,7 +1,8 @@
 package matcherapp.domain;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import matcherapp.utils.CharacterSet;
+import matcherapp.utils.FragmentStack;
+import matcherapp.utils.StateList;
 
 /**
  * Manages compiling of the regex to NFA.
@@ -20,7 +21,7 @@ public class Compiler {
      * @return Compiled fragment
      */
     private Fragment compileNFAFragment(String regex) {
-        Stack<Fragment> stack = new Stack<>();
+        FragmentStack stack = new FragmentStack();
         char[] chars = regex.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
@@ -34,6 +35,9 @@ public class Compiler {
                 case '(':
                     i = handleParenthesis(stack, chars, i);
                     break;
+                case '[':
+                    i = handleBrackets(stack, chars, i);
+                    break;
                 case '|':
                     i = handleVerticalBar(stack, chars, i);
                     break;
@@ -42,6 +46,13 @@ public class Compiler {
                     break;
                 case '+':
                     handlePlus(stack);
+                    break;
+                case '*':
+                    handleStar(stack);
+                    break;
+                case '\\':
+                    i++;
+                    stack.push(new Fragment(new State(chars[i])));
                     break;
                 default:
                     stack.push(new Fragment(new State(c)));
@@ -54,6 +65,36 @@ public class Compiler {
         }
 
         return stack.pop();
+    }
+
+    /**
+     * Handles [abcde] syntax, single character: a, b, c, d or e.
+     * @param stack Stack of fragments
+     * @param chars Regex pattern as char[]
+     * @param i Index to keep track where we are going
+     * @return Index back to caller.
+     */
+    private int handleBrackets(FragmentStack stack, char[] chars, int i) {
+        CharacterSet set = new CharacterSet();
+        i++;
+        char c = chars[i];
+        while (c != ']') {
+            if (c == '\\') {
+                i++;
+                set.add(chars[i]);
+            } else if (c == '-' && !set.isEmpty() && chars[i + 1] - chars[i - 1] > 0) {
+                for (int j = chars[i - 1] + 1; j <= chars[i + 1]; j++) {
+                    set.add((char) j);
+                }
+                i++;
+            } else {
+                set.add(c);
+            }
+            i++;
+            c = chars[i];
+        }
+        stack.push(new Fragment(new State(set)));
+        return i;
     }
 
     /**
@@ -75,16 +116,14 @@ public class Compiler {
      * @return Fragment with both fragments in separate branches.
      */
     private Fragment splitFragments(Fragment f1, Fragment f2) {
-        State split = new State(null);
-        split.setToSplit();
+        State split = newSplit(f2.getInput());
         split.setOut(f1.getInput());
-        split.setOut1(f2.getInput());
         Fragment splitFragment = new Fragment(split);
         splitFragment.getOutputs().clear();
-        for (State state : f1.getOutputs()) {
+        for (State state : f1.getOutputs().getAll()) {
             splitFragment.pushOutput(state);
         }
-        for (State state : f2.getOutputs()) {
+        for (State state : f2.getOutputs().getAll()) {
             splitFragment.pushOutput(state);
         }
         return splitFragment;
@@ -97,7 +136,7 @@ public class Compiler {
      * @param i Index to know, where we are at the char array
      * @return Index, so the compiler knows where to continue
      */
-    private int handleParenthesis(Stack<Fragment> stack, char[] chars,  int i) {
+    private int handleParenthesis(FragmentStack stack, char[] chars,  int i) {
         String s = "";
         int parenthesesCounter = 0;
         i++;
@@ -124,7 +163,7 @@ public class Compiler {
      * @param i Index to know, where we are at the char array
      * @return Index, so the compiler knows where to continue
      */
-    private int handleVerticalBar(Stack<Fragment> stack, char[] chars, int i) {
+    private int handleVerticalBar(FragmentStack stack, char[] chars, int i) {
         Fragment f1 = stack.pop();
         Fragment f2;
         i++;
@@ -140,13 +179,11 @@ public class Compiler {
 
     /**
      * Handles ? syntax: zero or one.
-     * @param stack
+     * @param stack Stack containing fragments.
      */
-    private void handleQuestionMark(Stack<Fragment> stack) {
+    private void handleQuestionMark(FragmentStack stack) {
         Fragment f = stack.pop();
-        State split = new State(null);
-        split.setToSplit();
-        split.setOut1(f.getInput());
+        State split = newSplit(f.getInput());
         f.pushOutput(split);
         f.setInput(split);
         stack.push(f);
@@ -154,39 +191,107 @@ public class Compiler {
 
     /**
      * Handles + syntax: one or more
-     * I don't know why, but this doesn't work, if this is first fragment in the NFA. We'll figure it out later.
-     * @param stack Stack, where the fragments are
+     * @param stack Stack containing fragments.
      */
-    private void handlePlus(Stack<Fragment> stack) {
+    private void handlePlus(FragmentStack stack) {
         Fragment f = stack.pop();
-        ArrayList<State> splits = new ArrayList<>();
-        for (State s : f.getOutputs()) {
-            State split = new State(null);
-            split.setToSplit();
-            split.setOut1(f.getInput());
+        StateList splits = new StateList();
+        for (State s : f.getOutputs().getAll()) {
+            State split = newSplit(f.getInput());
             splits.add(split);
 
             s.setOut(split);
         }
         f.getOutputs().clear();
-        for (State split : splits) {
+        for (State split : splits.getAll()) {
             f.pushOutput(split);
         }
         stack.push(f);
     }
 
+    /**
+     * Handles * syntax, zero or more.
+     * @param stack Stack containing fragments.
+     */
+    private void handleStar(FragmentStack stack) {
+        Fragment f = stack.pop();
+        State split = newSplit(f.getInput());
+        Fragment newFragment = new Fragment(split);
+        for (State s : f.getOutputs().getAll()) {
+            State split1 = newSplit(f.getInput());
+            newFragment.pushOutput(split1);
+            s.setOut(split1);
+        }
+        stack.push(newFragment);
+    }
+
+    /**
+     * Creates final matching state to complete NFA and concatenates it to fragment given.
+     * @param f Fragment to concat the final state
+     */
     private void addFinalState(Fragment f) {
         State match = new State(null);
         match.setToMatch();
-        for (State s : f.getOutputs()) {
+        for (State s : f.getOutputs().getAll()) {
             s.setOut(match);
         }
     }
 
-    private void concatTwoFragmentsInStack(Stack<Fragment> stack) {
+    /**
+     * Pops two fragments from given stack and pushes one concatenated fragment back to the stack.
+     * @param stack Stack containing fragments.
+     */
+    private void concatTwoFragmentsInStack(FragmentStack stack) {
         Fragment f2 = stack.pop();
         Fragment f1 = stack.pop();
         stack.push(concatFragments(f1, f2));
+    }
+
+    /**
+     * Creates new split state with one output routed.
+     * @param out1 State to route one end of the split (out1)
+     * @return New state set to split and given output routed.
+     */
+    private State newSplit(State out1) {
+        State split = new State(null);
+        split.setToSplit();
+        split.setOut1(out1);
+        return split;
+    }
+
+    /**
+     * I will figure {a,b} syntax out maybe later.
+     * @param stack
+     * @param chars
+     * @param i
+     * @return
+     */
+    private int handleBraces(FragmentStack stack, char[] chars, int i) {
+        int min = -1;
+        int max = -1;
+        String s = "";
+
+        i++;
+        char c = chars[i];
+        while (c != '}') {
+            if (c == ',') {
+                if (s.length() == 0) {
+                    min = 0;
+                } else {
+                    min = Integer.parseInt(s);
+                    s = "";
+                }
+            } else {
+                s += c;
+            }
+            i++;
+            c = chars[i];
+        }
+        if (s.length() > 0) {
+            max = Integer.parseInt(s);
+        }
+
+        return i;
     }
 
 }

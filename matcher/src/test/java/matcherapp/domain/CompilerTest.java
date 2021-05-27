@@ -39,4 +39,25 @@ public class CompilerTest {
         assertTrue(s.getOut().getOut().isMatch());
         assertTrue(s.getOut1().getOut().isMatch());
     }
+
+    @Test
+    public void starSyntaxAddsProperStates() {
+        State s = c.getFirstState("a*");
+        assertTrue(s.isSplit());
+        assertTrue(s.getOut().isMatch());
+        assertTrue(s.getOut1().matchesCharacter('a'));
+        assertTrue(s.getOut1().getOut().isSplit());
+        assertTrue(s.getOut1().getOut().getOut1().matchesCharacter('a'));
+        assertTrue(s.getOut1().getOut().getOut().isMatch());
+    }
+
+    @Test
+    public void bracketSyntaxAddsProperStates() {
+        State s = c.getFirstState("[abcd]");
+        assertTrue(s.matchesCharacter('a'));
+        assertTrue(s.matchesCharacter('b'));
+        assertTrue(s.matchesCharacter('c'));
+        assertTrue(s.matchesCharacter('d'));
+        assertTrue(s.getOut().isMatch());
+    }
 }

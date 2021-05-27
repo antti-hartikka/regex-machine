@@ -1,24 +1,25 @@
 package matcherapp.domain;
 
-import java.util.ArrayList;
+import matcherapp.utils.StateList;
 
 /**
  * Simulates NFA and find out if we get a match with given String
  */
 public class NFASimulator {
 
-    private ArrayList<State> currentStates;
-    private ArrayList<State> nextStates = new ArrayList<>();
-    private int listID = (int) System.nanoTime() % Integer.MAX_VALUE;
+    private StateList currentStates = new StateList();
+    private StateList nextStates = new StateList();
+    private int listID;
 
     /**
      * Constructor
      * @param startingState First state to begin with
      */
     public NFASimulator(State startingState) {
+        listID = (int) System.nanoTime() % Integer.MAX_VALUE;
         addState(startingState);
-        currentStates = nextStates;
-        nextStates = new ArrayList<>();
+        currentStates.addAll(nextStates.getAll());
+        nextStates.clear();
     }
 
     /**
@@ -31,10 +32,12 @@ public class NFASimulator {
         char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i++) {
-            step(chars[i]);
-            currentStates = nextStates;
-            nextStates = new ArrayList<>();
+            System.out.println("+++++++ ITERATION " + i + " +++++++++++");
             listID = (int) System.nanoTime() % Integer.MAX_VALUE;
+            step(chars[i]);
+            currentStates.clear();
+            currentStates.addAll(nextStates.getAll());
+            nextStates.clear();
         }
 
         return isMatch();
@@ -45,7 +48,8 @@ public class NFASimulator {
      * @param c Character to be checked.
      */
     private void step(char c) {
-        for (State state : currentStates) {
+        System.out.println("    STEP: " + c);
+        for (State state : currentStates.getAll()) {
             if (state.matchesCharacter(c)) {
                 addState(state.getOut());
             }
@@ -62,12 +66,22 @@ public class NFASimulator {
         }
         state.setLastList(listID);
 
+        System.out.println("----- state " + state + " -------");
+        System.out.println("isSplit: " + state.isSplit());
+        System.out.println("isMatch: " + state.isMatch());
+        System.out.println("out: " + state.getOut());
+        System.out.println("out1: " + state.getOut1());
+
         if (state.isSplit()) {
+            System.out.println("split");
             addState(state.getOut());
             addState(state.getOut1());
         } else {
+            System.out.println("not a split");
             nextStates.add(state);
         }
+
+        System.out.println("-------------------");
 
     }
 
@@ -76,7 +90,7 @@ public class NFASimulator {
      * @return Returns true, if we hit the goal, false if not.
      */
     private boolean isMatch() {
-        for (State s : currentStates) {
+        for (State s : currentStates.getAll()) {
             if (s.isMatch()) {
                 return true;
             }

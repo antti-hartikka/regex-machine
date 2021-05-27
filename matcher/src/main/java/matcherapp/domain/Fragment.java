@@ -1,6 +1,7 @@
 package matcherapp.domain;
 
-import java.util.ArrayList;
+import matcherapp.utils.StateList;
+
 
 /**
  * Represents a fragment of NFA: has one input and possibly several outputs.
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 public class Fragment {
 
     private State input;
-    private ArrayList<State> outputs = new ArrayList<>();
+    private StateList outputs = new StateList();
 
     public Fragment(State state) {
         this.input = state;
@@ -20,7 +21,7 @@ public class Fragment {
     }
 
     public void setOutputStates(State out) {
-        for (State s : outputs) {
+        for (State s : outputs.getAll()) {
             s.setOut(out);
         }
     }
@@ -33,7 +34,7 @@ public class Fragment {
         return input;
     }
 
-    public ArrayList<State> getOutputs() {
+    public StateList getOutputs() {
         return outputs;
     }
 
