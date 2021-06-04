@@ -70,4 +70,12 @@ public class State {
     public void setLastList(int lastList) {
         this.lastList = lastList;
     }
+
+    public CharacterSet getSet() {
+        return set;
+    }
+
+    public void setSet(CharacterSet set) {
+        this.set = set;
+    }
 }

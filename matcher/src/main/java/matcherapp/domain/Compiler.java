@@ -4,6 +4,8 @@ import matcherapp.utils.CharacterSet;
 import matcherapp.utils.FragmentStack;
 import matcherapp.utils.StateList;
 
+import java.util.Arrays;
+
 /**
  * Manages compiling of the regex to NFA.
  */
@@ -37,6 +39,9 @@ public class Compiler {
                     break;
                 case '[':
                     i = handleBrackets(stack, chars, i);
+                    break;
+                case '{':
+                    i = handleBraces(stack, chars, i);
                     break;
                 case '|':
                     i = handleVerticalBar(stack, chars, i);
@@ -261,12 +266,139 @@ public class Compiler {
 
     /**
      * I will figure {a,b} syntax out maybe later.
-     * @param stack
-     * @param chars
-     * @param i
-     * @return
+     * @param stack Stack containing fragments
+     * @param chars Char array from compiler
+     * @param i Index to know, where we are at the char array
+     * @return Index, so the compiler knows where to continue
      */
     private int handleBraces(FragmentStack stack, char[] chars, int i) {
+        int[] quantifiers = getQuantifiers(chars, i);
+        int min = quantifiers[0];
+        int max = quantifiers[1];
+
+        String pattern = getPrevRegex(chars, i - 1);
+        System.out.println("Pattern:  " + pattern);
+
+        if (min == -1) {
+            Fragment f = stack.pop();
+            for (int j = 1; j < max; j++) {
+                f = concatFragments(f, compileNFAFragment(pattern));
+            }
+            stack.push(f);
+        } else {
+            parseMinMaxQuantifiers(stack, pattern, min, max);
+        }
+
+        while (chars[i] != '}') {
+            i++;
+        }
+        return i;
+    }
+
+    /**
+     * Parses single fragment that matches {min,max} quantifiers and pushes it to the stack given.
+     * @param stack Fragment stack containing fragments.
+     * @param pattern Pattern to be used compiling fragments.
+     * @param min Min amount pattern should be repeated.
+     * @param max Max amount pattern should be repeated.
+     */
+    private void parseMinMaxQuantifiers(FragmentStack stack, String pattern, int min, int max) {
+        Fragment f = stack.pop();
+        if (min > 0) {
+            for (int j = 1; j < min; j++) {
+                f = concatFragments(f, compileNFAFragment(pattern));
+            }
+        } else {
+            State split = newSplit(f.getInput());
+            f.pushOutput(split);
+            f.setInput(split);
+            min++;
+        }
+        if (max == -1) {
+            Fragment f1 = compileNFAFragment(pattern);
+
+            State split1 = newSplit(f1.getInput());
+            for (State s : f1.getOutputs().getAll()) {
+                s.setOut(split1);
+            }
+            f1.getOutputs().clear();
+            f1.pushOutput(split1);
+
+            State split2 = newSplit(f1.getInput());
+            f1.pushOutput(split2);
+            f1.setInput(split2);
+
+            f = concatFragments(f, f1);
+        } else {
+            for (int j = min; j < max; j++) {
+                Fragment f1 = compileNFAFragment(pattern);
+                State split = newSplit(f1.getInput());
+                f1.pushOutput(split);
+                f1.setInput(split);
+                f = concatFragments(f, f1);
+            }
+        }
+        stack.push(f);
+    }
+
+    /**
+     * Finds previous regex pattern that forms single fragment.
+     * @param chars Char array from compiler.
+     * @param i Index pointing to the last character of the regex pattern before quantifiers.
+     * @return String containing previous regex fragment pattern.
+     */
+    private String getPrevRegex(char[] chars, int i) {
+        System.out.println(Arrays.toString(chars) + "   -   " + i);
+        String s = "";
+        char c = chars[i];
+        if (i == 0) {
+            return s + c;
+        }
+        if (c != ')' && c != ']' && chars[i - 1] != '\\') {
+            return s + c;
+        } else if (c == ')') {
+            return handleBracketsFromBehind(s, chars, i, '(', ')');
+        } else if (c == ']') {
+            return handleBracketsFromBehind(s, chars, i, '[', ']');
+        } else if (chars[i - 1] == '\\') {
+            return s + chars[i - 1] + c;
+        }
+        return s;
+    }
+
+    /**
+     * Handles different brackets when tracing previous fragment from regex pattern.
+     * @param s String to be modified
+     * @param chars Characters containing all regex.
+     * @param i Index to start from.
+     * @param open Open bracket character, usually ( or [.
+     * @param close Closing bracket character, usually ) or ].
+     * @return Index to keep track on progress.
+     */
+    private String handleBracketsFromBehind(String s, char[] chars, int i, char open, char close) {
+        int counter = 0;
+        char c = chars[i--];
+        while (c != open || counter != 1) {
+            if (c == close) {
+                counter++;
+            } else if (c == open) {
+                counter--;
+            }
+            s = c + s;
+            c = chars[i--];
+        }
+        s = c + s;
+        return s;
+    }
+
+    /**
+     * Gets min and max value from {a,b} syntax.
+     * @param chars Characters containing all regex.
+     * @param i Index pointing to { character
+     * @return Array, where min value is in index 0, and max value is in index 1.
+     */
+    private int[] getQuantifiers(char[] chars, int i) {
+        System.out.println("getQuantifiers:  " + Arrays.toString(chars) + "  --  " + i);
         int min = -1;
         int max = -1;
         String s = "";
@@ -287,11 +419,14 @@ public class Compiler {
             i++;
             c = chars[i];
         }
+        if (min == -1) {
+            return new int[]{-1, Integer.parseInt(s)};
+        }
         if (s.length() > 0) {
             max = Integer.parseInt(s);
         }
 
-        return i;
+        return new int[]{min, max};
     }
 
 }

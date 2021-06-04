@@ -43,4 +43,12 @@ public class MatcherTest {
         assertTrue(m.match("aaaaaaaa", "a+"));
         assertTrue(m.match("baaaaaaaa", "ba+"));
     }
+
+    @Test
+    public void matchingWorksWithBraceSyntax() {
+        assertTrue(m.match("abccc", "abc{3}"));
+        assertTrue(m.match("abccc", "abc{1,5}"));
+        assertTrue(m.match("abccc", "abc{,5}"));
+        assertTrue(m.match("abccc", "abc{2,}"));
+    }
 }

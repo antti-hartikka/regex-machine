@@ -62,6 +62,7 @@ public class MatcherUi extends Application {
             long time = System.currentTimeMillis();
             boolean regexResult = matcher.match(input.getText(), pattern.getText());
             time = System.currentTimeMillis() - time;
+
             if (regexResult) {
                 output.setFill(Color.GREEN);
                 output.setText("we have a match! (" + time + " ms)");

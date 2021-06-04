@@ -9,6 +9,10 @@ In the following weeks, I will design and implement a regular expression engine.
 
 [Weekly reports](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/weekly-reports)
 
+[Implementation](https://github.com/antti-hartikka/regex-machine/tree/main/documantation/implementation.md)
+
+[Testing](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/testing.md)
+
 ## How to..
 
 run matcher app:

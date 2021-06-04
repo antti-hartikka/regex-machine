@@ -2,13 +2,15 @@ package matcherapp.domain;
 
 import matcherapp.utils.StateList;
 
+import java.util.Arrays;
+
 /**
  * Simulates NFA and find out if we get a match with given String
  */
 public class NFASimulator {
 
-    private StateList currentStates = new StateList();
-    private StateList nextStates = new StateList();
+    private final StateList currentStates = new StateList();
+    private final StateList nextStates = new StateList();
     private int listID;
 
     /**
@@ -32,7 +34,7 @@ public class NFASimulator {
         char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i++) {
-            System.out.println("+++++++ ITERATION " + i + " +++++++++++");
+            System.out.println(i);
             listID = (int) System.nanoTime() % Integer.MAX_VALUE;
             step(chars[i]);
             currentStates.clear();
@@ -48,7 +50,6 @@ public class NFASimulator {
      * @param c Character to be checked.
      */
     private void step(char c) {
-        System.out.println("    STEP: " + c);
         for (State state : currentStates.getAll()) {
             if (state.matchesCharacter(c)) {
                 addState(state.getOut());
@@ -66,23 +67,12 @@ public class NFASimulator {
         }
         state.setLastList(listID);
 
-        System.out.println("----- state " + state + " -------");
-        System.out.println("isSplit: " + state.isSplit());
-        System.out.println("isMatch: " + state.isMatch());
-        System.out.println("out: " + state.getOut());
-        System.out.println("out1: " + state.getOut1());
-
         if (state.isSplit()) {
-            System.out.println("split");
             addState(state.getOut());
             addState(state.getOut1());
         } else {
-            System.out.println("not a split");
             nextStates.add(state);
         }
-
-        System.out.println("-------------------");
-
     }
 
     /**

@@ -44,6 +44,7 @@ public class CharacterSet {
             if (node.getChar() == c) {
                 return true;
             }
+            node = node.getNext();
         }
         return false;
     }

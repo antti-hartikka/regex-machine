@@ -24,7 +24,7 @@ public class FragmentStack {
      */
     public void push(Fragment fragment) {
         if (size == t.length) {
-            Fragment[] copy = new Fragment[t.length];
+            Fragment[] copy = new Fragment[t.length * 2];
             for (int i = 0; i < t.length; i++) {
                 copy[i] = t[i];
             }
