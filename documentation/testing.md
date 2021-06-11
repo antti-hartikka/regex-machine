@@ -18,4 +18,4 @@ I conducted two tests: matching a^n to a^n with different values of n, and simil
 The results are below, and we can see how this engine works suprisingly well even with longer strings.
 
 ![linechart](./resources/a.png)
-![linechart](./resources/a?a.png)
+![linechart](./resources/a%3Fa.png)
