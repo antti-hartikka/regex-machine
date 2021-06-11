@@ -4,7 +4,10 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -12,6 +15,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 import matcherapp.domain.Matcher;
+
+import java.util.regex.PatternSyntaxException;
 
 /**
  * simple user interface
@@ -26,11 +31,15 @@ public class MatcherUi extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        PerformanceTest test = new PerformanceTest();
+        HBox testPane = new HBox();
+        Scene testScene = new Scene(testPane);
+
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(100, 100, 100, 100));
 
         HBox labels = new HBox();
-        labels.setSpacing(200);
+        labels.setSpacing(240);
         labels.setPadding(new Insets(10,10,10,100));
         labels.getChildren().add(new Text("input"));
         labels.getChildren().add(new Text("pattern"));
@@ -44,8 +53,14 @@ public class MatcherUi extends Application {
         TextField pattern = new TextField();
         textFields.getChildren().add(input);
         textFields.getChildren().add(pattern);
+
+        HBox buttons = new HBox();
+        buttons.setSpacing(10);
         Button button = new Button("match");
-        textFields.getChildren().add(button);
+        buttons.getChildren().add(button);
+        CheckBox automatching = new CheckBox("Automatch");
+        buttons.getChildren().add(automatching);
+        textFields.getChildren().add(buttons);
 
         Text output = new Text(null);
         HBox textBox = new HBox();
@@ -59,6 +74,31 @@ public class MatcherUi extends Application {
         stage.show();
 
         button.setOnMouseClicked(mouseEvent -> {
+            tryMatching(input, pattern, output);
+            if (input.getText().equals("TEST") && pattern.getText().equals("MODE")) {
+                stage.setScene(testScene);
+                testPane.getChildren().add(test.getChart());
+            }
+        });
+        input.setOnKeyReleased(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER || automatching.isSelected()) {
+                tryMatching(input, pattern, output);
+            }
+        });
+        pattern.setOnKeyReleased(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ENTER || automatching.isSelected()) {
+                tryMatching(input, pattern, output);
+            }
+        });
+        testScene.setOnKeyPressed(keyEvent -> {
+            if (keyEvent.getCode() == KeyCode.ESCAPE) {
+                stage.setScene(scene);
+            }
+        });
+    }
+
+    private void tryMatching(TextField input, TextField pattern, Text output) {
+        try {
             long time = System.currentTimeMillis();
             boolean regexResult = matcher.match(input.getText(), pattern.getText());
             time = System.currentTimeMillis() - time;
@@ -70,6 +110,9 @@ public class MatcherUi extends Application {
                 output.setFill(Color.RED);
                 output.setText("no match! (" + time + " ms)");
             }
-        });
+        } catch (PatternSyntaxException e) {
+            output.setFill(Color.BLACK);
+            output.setText("pattern syntax error: \n" + e);
+        }
     }
 }

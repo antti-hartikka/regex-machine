@@ -2,7 +2,6 @@ package matcherapp.domain;
 
 import matcherapp.utils.StateList;
 
-import java.util.Arrays;
 
 /**
  * Simulates NFA and find out if we get a match with given String
@@ -34,7 +33,6 @@ public class NFASimulator {
         char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i++) {
-            System.out.println(i);
             listID = (int) System.nanoTime() % Integer.MAX_VALUE;
             step(chars[i]);
             currentStates.clear();

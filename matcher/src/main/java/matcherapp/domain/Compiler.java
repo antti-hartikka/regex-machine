@@ -4,14 +4,14 @@ import matcherapp.utils.CharacterSet;
 import matcherapp.utils.FragmentStack;
 import matcherapp.utils.StateList;
 
-import java.util.Arrays;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Manages compiling of the regex to NFA.
  */
 public class Compiler {
 
-    public State getFirstState(String regex) {
+    public State getFirstState(String regex) throws PatternSyntaxException {
         Fragment f = compileNFAFragment(regex);
         addFinalState(f);
         return f.getInput();
@@ -22,7 +22,7 @@ public class Compiler {
      * @param regex Regex pattern to transform into NFA fragment
      * @return Compiled fragment
      */
-    private Fragment compileNFAFragment(String regex) {
+    private Fragment compileNFAFragment(String regex) throws PatternSyntaxException {
         FragmentStack stack = new FragmentStack();
         char[] chars = regex.toCharArray();
         for (int i = 0; i < chars.length; i++) {
@@ -73,21 +73,27 @@ public class Compiler {
     }
 
     /**
-     * Handles [abcde] syntax, single character: a, b, c, d or e.
+     * Handles [abc-e] syntax, single character: a, b, or all characters between c and e.
      * @param stack Stack of fragments
      * @param chars Regex pattern as char[]
      * @param i Index to keep track where we are going
      * @return Index back to caller.
      */
-    private int handleBrackets(FragmentStack stack, char[] chars, int i) {
+    private int handleBrackets(FragmentStack stack, char[] chars, int i) throws PatternSyntaxException {
         CharacterSet set = new CharacterSet();
         i++;
         char c = chars[i];
         while (c != ']') {
+
+            // if c is escape char
             if (c == '\\') {
                 i++;
                 set.add(chars[i]);
+
+                // if c is "-", it is preceded with char (is in set), and in "a-b" syntax a comes before b.
             } else if (c == '-' && !set.isEmpty() && chars[i + 1] - chars[i - 1] > 0) {
+
+                // add all characters between two to the set
                 for (int j = chars[i - 1] + 1; j <= chars[i + 1]; j++) {
                     set.add((char) j);
                 }
@@ -96,6 +102,11 @@ public class Compiler {
                 set.add(c);
             }
             i++;
+
+            // handle syntax error
+            if (i == chars.length) {
+                handleSyntaxError(chars, -1, "']' was not found");
+            }
             c = chars[i];
         }
         stack.push(new Fragment(new State(set)));
@@ -141,10 +152,13 @@ public class Compiler {
      * @param i Index to know, where we are at the char array
      * @return Index, so the compiler knows where to continue
      */
-    private int handleParenthesis(FragmentStack stack, char[] chars,  int i) {
+    private int handleParenthesis(FragmentStack stack, char[] chars,  int i) throws PatternSyntaxException {
         String s = "";
         int parenthesesCounter = 0;
         i++;
+        if (i == chars.length) {
+            handleSyntaxError(chars, i, "nothing after '('");
+        }
         char c = chars[i];
         while (c != ')' || parenthesesCounter != 0) {
             if (c == '(') {
@@ -154,6 +168,10 @@ public class Compiler {
             }
             s += c;
             i++;
+
+            if (i == chars.length) {
+                handleSyntaxError(chars, -1, "Couldn't find matching ')'");
+            }
             c = chars[i];
         }
         Fragment f = compileNFAFragment(s);
@@ -168,7 +186,10 @@ public class Compiler {
      * @param i Index to know, where we are at the char array
      * @return Index, so the compiler knows where to continue
      */
-    private int handleVerticalBar(FragmentStack stack, char[] chars, int i) {
+    private int handleVerticalBar(FragmentStack stack, char[] chars, int i) throws PatternSyntaxException {
+        if (i == 0 || chars.length == i + 1) {
+            handleSyntaxError(chars, i, "Found 'a|b' syntax without 'a' or 'b'");
+        }
         Fragment f1 = stack.pop();
         Fragment f2;
         i++;
@@ -186,7 +207,10 @@ public class Compiler {
      * Handles ? syntax: zero or one.
      * @param stack Stack containing fragments.
      */
-    private void handleQuestionMark(FragmentStack stack) {
+    private void handleQuestionMark(FragmentStack stack) throws PatternSyntaxException {
+        if (stack.size() == 0) {
+            throw new PatternSyntaxException("found '?' syntax without context", "", -1);
+        }
         Fragment f = stack.pop();
         State split = newSplit(f.getInput());
         f.pushOutput(split);
@@ -198,7 +222,10 @@ public class Compiler {
      * Handles + syntax: one or more
      * @param stack Stack containing fragments.
      */
-    private void handlePlus(FragmentStack stack) {
+    private void handlePlus(FragmentStack stack) throws PatternSyntaxException {
+        if (stack.size() == 0) {
+            throw new PatternSyntaxException("found '+' syntax without context", "", -1);
+        }
         Fragment f = stack.pop();
         StateList splits = new StateList();
         for (State s : f.getOutputs().getAll()) {
@@ -218,7 +245,10 @@ public class Compiler {
      * Handles * syntax, zero or more.
      * @param stack Stack containing fragments.
      */
-    private void handleStar(FragmentStack stack) {
+    private void handleStar(FragmentStack stack) throws PatternSyntaxException {
+        if (stack.size() == 0) {
+            throw new PatternSyntaxException("found '*' syntax without context", "", -1);
+        }
         Fragment f = stack.pop();
         State split = newSplit(f.getInput());
         Fragment newFragment = new Fragment(split);
@@ -265,19 +295,21 @@ public class Compiler {
     }
 
     /**
-     * I will figure {a,b} syntax out maybe later.
+     * Handles {a,b} syntax, from a to b times. Also {a}, {a,} or {,b} is possible.
      * @param stack Stack containing fragments
      * @param chars Char array from compiler
      * @param i Index to know, where we are at the char array
      * @return Index, so the compiler knows where to continue
      */
     private int handleBraces(FragmentStack stack, char[] chars, int i) {
+        if (stack.size() == 0) {
+            throw new PatternSyntaxException("found '{a,b}' syntax without context", "", -1);
+        }
         int[] quantifiers = getQuantifiers(chars, i);
         int min = quantifiers[0];
         int max = quantifiers[1];
 
         String pattern = getPrevRegex(chars, i - 1);
-        System.out.println("Pattern:  " + pattern);
 
         if (min == -1) {
             Fragment f = stack.pop();
@@ -348,7 +380,6 @@ public class Compiler {
      * @return String containing previous regex fragment pattern.
      */
     private String getPrevRegex(char[] chars, int i) {
-        System.out.println(Arrays.toString(chars) + "   -   " + i);
         String s = "";
         char c = chars[i];
         if (i == 0) {
@@ -398,35 +429,51 @@ public class Compiler {
      * @return Array, where min value is in index 0, and max value is in index 1.
      */
     private int[] getQuantifiers(char[] chars, int i) {
-        System.out.println("getQuantifiers:  " + Arrays.toString(chars) + "  --  " + i);
         int min = -1;
         int max = -1;
-        String s = "";
+        String extractedValue = "";
 
         i++;
         char c = chars[i];
         while (c != '}') {
             if (c == ',') {
-                if (s.length() == 0) {
+                if (extractedValue.length() == 0) {
                     min = 0;
                 } else {
-                    min = Integer.parseInt(s);
-                    s = "";
+                    min = Integer.parseInt(extractedValue);
+                    extractedValue = "";
                 }
             } else {
-                s += c;
+                extractedValue += c;
             }
             i++;
+            if (i == chars.length) {
+                handleSyntaxError(chars, -1, "'}' not found");
+            }
             c = chars[i];
         }
         if (min == -1) {
-            return new int[]{-1, Integer.parseInt(s)};
+            return new int[]{-1, Integer.parseInt(extractedValue)};
         }
-        if (s.length() > 0) {
-            max = Integer.parseInt(s);
+        if (extractedValue.length() > 0) {
+            max = Integer.parseInt(extractedValue);
         }
 
         return new int[]{min, max};
+    }
+
+    /**
+     * Throws PatternSyntaxException with given parameters.
+     * @param chars Character array containing the regex pattern, null if not known.
+     * @param i Index to point syntax error location, -1 if not known
+     * @param description Description to clarify the nature of exception.
+     */
+    private void handleSyntaxError (char[] chars, int i, String description) throws PatternSyntaxException {
+        String regex = "";
+        for (char c1 : chars) {
+            regex += c1;
+        }
+        throw new PatternSyntaxException(description, regex, i);
     }
 
 }

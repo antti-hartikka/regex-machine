@@ -62,8 +62,4 @@ public class StateList {
         size = 0;
     }
 
-    public int size() {
-        return size;
-    }
-
 }

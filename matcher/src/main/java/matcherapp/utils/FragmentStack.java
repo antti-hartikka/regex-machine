@@ -38,6 +38,7 @@ public class FragmentStack {
      * @return Fragment from stack.
      */
     public Fragment pop() {
+
         return t[(size--) - 1];
     }
 

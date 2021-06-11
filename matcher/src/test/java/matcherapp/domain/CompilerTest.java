@@ -59,5 +59,15 @@ public class CompilerTest {
         assertTrue(s.matchesCharacter('c'));
         assertTrue(s.matchesCharacter('d'));
         assertTrue(s.getOut().isMatch());
+
+        s = c.getFirstState("[ab-eg]");
+        assertTrue(s.matchesCharacter('a'));
+        assertTrue(s.matchesCharacter('b'));
+        assertTrue(s.matchesCharacter('c'));
+        assertTrue(s.matchesCharacter('d'));
+        assertTrue(s.matchesCharacter('e'));
+        assertFalse(s.matchesCharacter('f'));
+        assertTrue(s.matchesCharacter('g'));
+        assertTrue(s.getOut().isMatch());
     }
 }

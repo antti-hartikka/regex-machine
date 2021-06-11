@@ -8,7 +8,14 @@ MatcherTest is testing matching with different syntaxes.
 
 ## Manual testing
 
-I have done manual testing while implementing new features, and I have made sure different thing are working. 
-I did test with one million character string with simple [a-z]+ pattern, and matching took 1,5 seconds. 
-Another test with similar pattern, but testing string was almost seven million characters, took 10 seconds. 
-It seems that I have implemented engine with O(n) time complexity at least with simple inputs. 
+I have done manual testing with GUI while implementing new features, and I have made sure different thing are working as they should.
+ 
+
+## Performance testing
+
+There is a new class in the ui package: PerformanceTest. It basically is used to return a LineChart object to be used in gui.
+I conducted two tests: matching a^n to a^n with different values of n, and similarly matching a^n to (a?)^n(a)^n. 
+The results are below, and we can see how this engine works suprisingly well even with longer strings.
+
+![linechart](./resources/a.png)
+![linechart](./resources/a?a.png)
