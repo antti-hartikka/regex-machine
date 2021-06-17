@@ -30,6 +30,8 @@ First and second parts are repeated, third is not. Regex string is formed this w
 
 The final input is `max time for one match in milliseconds:`. The performance test loop breaks if there is a matching, that has taken more time than this value.
 
+The tests do not give any progress indications what so ever, but after the tests the line chart is opened into a new window. 
+
 ## Available grammar
 
 * `(abc)` for grouping.
