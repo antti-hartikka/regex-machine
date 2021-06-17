@@ -31,7 +31,7 @@ for character in input string
         match character to state and if match is found, add proceeding states to list for next character in input string
 ```
 Because the states in the NFA can lead to practically any other unique state in the NFA, and in the worst case scenario the NFA is in all states in a step, the time complexity is `O(nm)`, where n is length of the input string and m is number of states. 
-How many states can there be? In the "pathological" case of $a?^na^n$, there are n states in the state list at every given moment making time complexity to $O(n^2)$, witch is something of a sensible worst case scenario.
+How many states can there be? In the "pathological" case of (a?)^n(a)^n, there are n states in the state list at every given moment making time complexity to O(n^2), witch is something of a sensible worst case scenario.
 
 ## Deficiensies and improvements
 

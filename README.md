@@ -5,13 +5,15 @@ In the following weeks, I will design and implement a regular expression engine.
 
 ## Documentation
 
-[Project specification](https://github.com/antti-hartikka/regex-machine/blob/main/documentation/project-specification.md)
+[User manual](./documentation/manual.md)
 
-[Weekly reports](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/weekly-reports)
+[Project specification](./documentation/project-specification.md)
 
-[Implementation](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/implementation.md)
+[Weekly reports](./documentation/weekly-reports)
 
-[Testing](https://github.com/antti-hartikka/regex-machine/tree/main/documentation/testing.md)
+[Implementation](./documentation/implementation.md)
+
+[Testing](./documentation/testing.md)
 
 ## How to..
 
