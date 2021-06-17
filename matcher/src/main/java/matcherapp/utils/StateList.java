@@ -3,15 +3,15 @@ package matcherapp.utils;
 import matcherapp.domain.State;
 
 /**
- * List for states.
+ * List structure for State objects.
  */
 public class StateList {
 
-    State[] t;
-    int size = 0;
+    private State[] t;
+    private int size = 0;
 
     /**
-     * Inits new table with length of 10.
+     * Constructs new StateList with.
      */
     public StateList() {
         t = new State[10];
@@ -34,8 +34,8 @@ public class StateList {
     }
 
     /**
-     * Add multiple states to list.
-     * @param t1 Table containing states to be added.
+     * Adds multiple states to list.
+     * @param t1 Table of State objects containing states to be added.
      */
     public void addAll(State[] t1) {
         for (State s : t1) {
@@ -44,7 +44,7 @@ public class StateList {
     }
 
     /**
-     * To get all the states as a table.
+     * Returns all the states as a table of State objects.
      * @return Table containing all the states from the list.
      */
     public State[] getAll() {

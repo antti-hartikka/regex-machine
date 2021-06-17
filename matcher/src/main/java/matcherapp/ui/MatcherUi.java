@@ -7,7 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -31,10 +30,6 @@ public class MatcherUi extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
-        PerformanceTest test = new PerformanceTest();
-        HBox testPane = new HBox();
-        Scene testScene = new Scene(testPane);
-
         VBox vBox = new VBox();
         vBox.setPadding(new Insets(100, 100, 100, 100));
 
@@ -73,13 +68,7 @@ public class MatcherUi extends Application {
         stage.setTitle("RegexMachine");
         stage.show();
 
-        button.setOnMouseClicked(mouseEvent -> {
-            tryMatching(input, pattern, output);
-            if (input.getText().equals("TEST") && pattern.getText().equals("MODE")) {
-                stage.setScene(testScene);
-                testPane.getChildren().add(test.getChart());
-            }
-        });
+        button.setOnMouseClicked(mouseEvent -> tryMatching(input, pattern, output));
         input.setOnKeyReleased(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER || automatching.isSelected()) {
                 tryMatching(input, pattern, output);
@@ -88,11 +77,6 @@ public class MatcherUi extends Application {
         pattern.setOnKeyReleased(keyEvent -> {
             if (keyEvent.getCode() == KeyCode.ENTER || automatching.isSelected()) {
                 tryMatching(input, pattern, output);
-            }
-        });
-        testScene.setOnKeyPressed(keyEvent -> {
-            if (keyEvent.getCode() == KeyCode.ESCAPE) {
-                stage.setScene(scene);
             }
         });
     }

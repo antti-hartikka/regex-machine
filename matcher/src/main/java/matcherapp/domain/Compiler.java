@@ -7,10 +7,16 @@ import matcherapp.utils.StateList;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * Manages compiling of the regex to NFA.
+ * Manages compiling process of the regex to NFA.
  */
 public class Compiler {
 
+    /**
+     * Returns the first state of the compiled NFA to be used in the NFASimulator.
+     * @param regex Regex pattern to be compiled.
+     * @return First state of compiled NFA.
+     * @throws PatternSyntaxException if syntax error is detected.
+     */
     public State getFirstState(String regex) throws PatternSyntaxException {
         Fragment f = compileNFAFragment(regex);
         addFinalState(f);
@@ -18,9 +24,9 @@ public class Compiler {
     }
 
     /**
-     * Compiles NFA fragment from input string
-     * @param regex Regex pattern to transform into NFA fragment
-     * @return Compiled fragment
+     * Compiles NFA fragment from input string.
+     * @param regex Regex pattern to be compiled into a NFA fragment.
+     * @return Compiled fragment.
      */
     private Fragment compileNFAFragment(String regex) throws PatternSyntaxException {
         FragmentStack stack = new FragmentStack();
@@ -74,10 +80,10 @@ public class Compiler {
 
     /**
      * Handles [abc-e] syntax, single character: a, b, or all characters between c and e.
-     * @param stack Stack of fragments
-     * @param chars Regex pattern as char[]
-     * @param i Index to keep track where we are going
-     * @return Index back to caller.
+     * @param stack Stack containing compiled fragments.
+     * @param chars Regex pattern as character array.
+     * @param i Index to keep track where we are going.
+     * @return Index to keep track where to continue.
      */
     private int handleBrackets(FragmentStack stack, char[] chars, int i) throws PatternSyntaxException {
         CharacterSet set = new CharacterSet();
@@ -114,9 +120,9 @@ public class Compiler {
     }
 
     /**
-     * Concatenates two fragments
-     * @param f1 First fragment
-     * @param f2 Second fragment
+     * Returns two fragments concatenated as one.
+     * @param f1 First fragment.
+     * @param f2 Second fragment.
      * @return Fragment, where input is from first parameter, and output is from second parameter.
      */
     private Fragment concatFragments(Fragment f1, Fragment f2) {
@@ -126,9 +132,9 @@ public class Compiler {
     }
 
     /**
-     * Splits two fragments into two brances.
-     * @param f1 First fragment
-     * @param f2 Second fragment
+     * Splits two fragments into one fragment with two branches.
+     * @param f1 First fragment.
+     * @param f2 Second fragment.
      * @return Fragment with both fragments in separate branches.
      */
     private Fragment splitFragments(Fragment f1, Fragment f2) {
@@ -147,10 +153,10 @@ public class Compiler {
 
     /**
      * Handles parenthesis (grouping): makes recursive call to compileNFAFragment to deal groups.
-     * @param stack Stack containing fragments
-     * @param chars Char array from compiler
-     * @param i Index to know, where we are at the char array
-     * @return Index, so the compiler knows where to continue
+     * @param stack Stack containing compiled fragments.
+     * @param chars Character array containing the regex pattern.
+     * @param i Index to keep track, where we are at the character array.
+     * @return Index to keep track, where to continue.
      */
     private int handleParenthesis(FragmentStack stack, char[] chars,  int i) throws PatternSyntaxException {
         String s = "";
@@ -180,11 +186,11 @@ public class Compiler {
     }
 
     /**
-     * Handles | syntax: a|b -> a or b
-     * @param stack Stack containing fragments
-     * @param chars Char array from compiler
-     * @param i Index to know, where we are at the char array
-     * @return Index, so the compiler knows where to continue
+     * Handles | syntax: a|b -> a or b.
+     * @param stack Stack containing compiled fragments.
+     * @param chars Char array from compiler.
+     * @param i Index to keep track, where we are at the char array.
+     * @return Index to keep track, where to continue after calling this method.
      */
     private int handleVerticalBar(FragmentStack stack, char[] chars, int i) throws PatternSyntaxException {
         if (i == 0 || chars.length == i + 1) {
@@ -205,7 +211,7 @@ public class Compiler {
 
     /**
      * Handles ? syntax: zero or one.
-     * @param stack Stack containing fragments.
+     * @param stack Stack containing compiled fragments.
      */
     private void handleQuestionMark(FragmentStack stack) throws PatternSyntaxException {
         if (stack.size() == 0) {
@@ -220,7 +226,7 @@ public class Compiler {
 
     /**
      * Handles + syntax: one or more
-     * @param stack Stack containing fragments.
+     * @param stack Stack containing compiled fragments.
      */
     private void handlePlus(FragmentStack stack) throws PatternSyntaxException {
         if (stack.size() == 0) {
@@ -243,7 +249,7 @@ public class Compiler {
 
     /**
      * Handles * syntax, zero or more.
-     * @param stack Stack containing fragments.
+     * @param stack Stack containing compiled fragments.
      */
     private void handleStar(FragmentStack stack) throws PatternSyntaxException {
         if (stack.size() == 0) {
@@ -274,7 +280,7 @@ public class Compiler {
 
     /**
      * Pops two fragments from given stack and pushes one concatenated fragment back to the stack.
-     * @param stack Stack containing fragments.
+     * @param stack Stack containing compiled fragments.
      */
     private void concatTwoFragmentsInStack(FragmentStack stack) {
         Fragment f2 = stack.pop();
@@ -284,7 +290,7 @@ public class Compiler {
 
     /**
      * Creates new split state with one output routed.
-     * @param out1 State to route one end of the split (out1)
+     * @param out1 State to route one end of the split (out1).
      * @return New state set to split and given output routed.
      */
     private State newSplit(State out1) {
@@ -296,10 +302,10 @@ public class Compiler {
 
     /**
      * Handles {a,b} syntax, from a to b times. Also {a}, {a,} or {,b} is possible.
-     * @param stack Stack containing fragments
-     * @param chars Char array from compiler
-     * @param i Index to know, where we are at the char array
-     * @return Index, so the compiler knows where to continue
+     * @param stack Stack containing compiled fragments.
+     * @param chars Character array containing regex pattern.
+     * @param i Index to keep track, where we are at the char array.
+     * @return Index to keep track, where to continue.
      */
     private int handleBraces(FragmentStack stack, char[] chars, int i) {
         if (stack.size() == 0) {
@@ -329,8 +335,8 @@ public class Compiler {
 
     /**
      * Parses single fragment that matches {min,max} quantifiers and pushes it to the stack given.
-     * @param stack Fragment stack containing fragments.
-     * @param pattern Pattern to be used compiling fragments.
+     * @param stack Stack containing compiled fragments.
+     * @param pattern Regex pattern to be used compiling fragments.
      * @param min Min amount pattern should be repeated.
      * @param max Max amount pattern should be repeated.
      */
@@ -375,7 +381,7 @@ public class Compiler {
 
     /**
      * Finds previous regex pattern that forms single fragment.
-     * @param chars Char array from compiler.
+     * @param chars Character array containing regex pattern.
      * @param i Index pointing to the last character of the regex pattern before quantifiers.
      * @return String containing previous regex fragment pattern.
      */
@@ -391,15 +397,13 @@ public class Compiler {
             return handleBracketsFromBehind(s, chars, i, '(', ')');
         } else if (c == ']') {
             return handleBracketsFromBehind(s, chars, i, '[', ']');
-        } else if (chars[i - 1] == '\\') {
-            return s + chars[i - 1] + c;
         }
         return s;
     }
 
     /**
      * Handles different brackets when tracing previous fragment from regex pattern.
-     * @param s String to be modified
+     * @param s String to be modified.
      * @param chars Characters containing all regex.
      * @param i Index to start from.
      * @param open Open bracket character, usually ( or [.
@@ -468,7 +472,7 @@ public class Compiler {
      * @param i Index to point syntax error location, -1 if not known
      * @param description Description to clarify the nature of exception.
      */
-    private void handleSyntaxError (char[] chars, int i, String description) throws PatternSyntaxException {
+    private void handleSyntaxError(char[] chars, int i, String description) throws PatternSyntaxException {
         String regex = "";
         for (char c1 : chars) {
             regex += c1;

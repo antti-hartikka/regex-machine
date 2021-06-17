@@ -1,7 +1,7 @@
 package matcherapp.utils;
 
 /**
- * Hash set class for characters.
+ * Hash set type data structure for characters.
  */
 public class CharacterSet {
 
@@ -9,14 +9,14 @@ public class CharacterSet {
     private int size = 0;
 
     /**
-     * Initializes new hash set.
+     * Initializes new hash set for characters.
      */
     public CharacterSet() {
         t = new CharacterNode[17];
     }
 
     /**
-     * Adds a single character to the hash set.
+     * Adds a single character to the set.
      * @param c Character to be added.
      */
     public void add(char c) {
@@ -50,7 +50,7 @@ public class CharacterSet {
     }
 
     /**
-     * Checks if this hash set is empty.
+     * Checks if this set is empty.
      * @return True, if set is empty, false if not.
      */
     public boolean isEmpty() {

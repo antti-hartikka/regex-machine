@@ -2,6 +2,8 @@ package matcherapp.domain;
 
 import org.junit.Test;
 
+import java.util.regex.PatternSyntaxException;
+
 import static org.junit.Assert.*;
 
 public class MatcherTest {
@@ -46,9 +48,31 @@ public class MatcherTest {
 
     @Test
     public void matchingWorksWithBraceSyntax() {
+        assertTrue(m.match("aaaaa", "a{5}"));
         assertTrue(m.match("abccc", "abc{3}"));
         assertTrue(m.match("abccc", "abc{1,5}"));
         assertTrue(m.match("abccc", "abc{,5}"));
         assertTrue(m.match("abccc", "abc{2,}"));
+        assertTrue(m.match("abcabcdefghij", "(abc){,3}[d-j]{4,10}"));
+    }
+
+    @Test
+    public void escapeCharacterEscapes() {
+        assertTrue(m.match("(\\)?*{{}}[]", "\\(\\\\\\)\\?\\*[\\{\\}]{4}\\[\\]"));
+    }
+
+    @Test(expected = PatternSyntaxException.class)
+    public void syntaxErrorThrowsExceptionWithBrackets() {
+        m.match("abba", "[a-z+");
+    }
+
+    @Test(expected = PatternSyntaxException.class)
+    public void syntaxErrorThrowsExceptionWithBraces() {
+        m.match("abba", "ab{2a");
+    }
+
+    @Test(expected = PatternSyntaxException.class)
+    public void syntaxErrorThrowsExceptionWithParenthesis() {
+        m.match("abba", "(abba)|(abbb");
     }
 }
