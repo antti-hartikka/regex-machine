@@ -22,6 +22,39 @@ There is a class for drawing a line chart for the performance test: PerformanceT
 It takes inputs and conducts performance tests, and after testing it draws a line chart. 
 There is instructions for using this feature in the user manual.
 I conducted two tests: matching a^n to a^n with different values of n, and similarly matching a^n to (a?)^n(a)^n. 
+Inputs for the tests were
+```
+max n:
+5000000
+step size:
+100000
+text to be matched (repeated n times):
+a
+first part of regex (repeated n times):
+a
+second part of regex (repeated n times):
+
+third part of regex (not repeated):
+
+max time for one match in milliseconds:
+10000
+```
+```
+max n:
+1000000
+step size:
+100
+text to be matched (repeated n times):
+a
+first part of regex (repeated n times):
+a?
+second part of regex (repeated n times):
+a
+third part of regex (not repeated):
+
+max time for one match in milliseconds:
+10000
+```
 The results are below, and we can see how this engine works suprisingly well even with longer strings.
 
 ![linechart](./resources/a.png)

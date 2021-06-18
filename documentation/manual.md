@@ -17,7 +17,7 @@ It also tells you if there is a syntax error with the regex pattern.
 
 ## Testing side
 
-If you answer `y` to the `test?` question, the cli asks you a buch of other questions for the performance test.
+If you answer `y` to the `performance test?` question, the cli asks you a buch of other questions for the performance test.
 
 `max n` is the largest amount of input strings are repeated in these tests.
 
