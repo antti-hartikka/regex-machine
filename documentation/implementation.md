@@ -2,12 +2,12 @@
 
 ## Structure
 
-Javadoc with automatically generated, interactive UML diagrams: TODO: link
-
 The Matcher app is divided into three packages:
 * domain
 * ui
 * utils
+
+![uml](./resources/overview0.png)
 
 The domain package contains main logical structure of the regex engine and it matches strings to regex patterns.
 The ui package contains the graphical user interface and performance tester. 
@@ -16,6 +16,7 @@ The utils package contains self implemented classes of hash set for characters, 
 
 Inside of the main package matcherapp is also Main class. This class asks user if matcher app or performance testing is invoked.
 
+![uml](./resources/overview1.png)
 
 ## O-analysis
 Matching can be divided into two sections: first the NFA is compiled from the regex pattern, and after this the input string is matched in the NFA simulator.
