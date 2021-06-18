@@ -17,7 +17,13 @@ In the following weeks, I will design and implement a regular expression engine.
 
 ## How to..
 
-run matcher app:
+run jar file from release:
+
+```
+java -jar matcher.jar
+```
+
+run project with maven:
 ```
 mvn compile exec:java -Dexec.mainClass=matcherapp.Main
 ```
