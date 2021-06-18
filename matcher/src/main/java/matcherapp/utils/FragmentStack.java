@@ -3,47 +3,46 @@ package matcherapp.utils;
 import matcherapp.domain.Fragment;
 
 /**
- * Stack for fragments.
+ * Stack type data structure for fragments.
  */
 public class FragmentStack {
 
-    Fragment[] t;
-    int size;
+    private Fragment[] table;
+    private int size;
 
     /**
-     * Inits new table with length of 10.
+     * Constructor, inits new stack.
      */
     public FragmentStack() {
-        t = new Fragment[10];
+        table = new Fragment[10];
         size = 0;
     }
 
     /**
-     * Adds fragment to the top of stack.
+     * Adds given fragment to the stack.
      * @param fragment Fragment to be added.
      */
     public void push(Fragment fragment) {
-        if (size == t.length) {
-            Fragment[] copy = new Fragment[t.length * 2];
-            for (int i = 0; i < t.length; i++) {
-                copy[i] = t[i];
+        if (size == table.length) {
+            Fragment[] copy = new Fragment[table.length * 2];
+            for (int i = 0; i < table.length; i++) {
+                copy[i] = table[i];
             }
-            t = copy;
+            table = copy;
         }
-        t[size++] = fragment;
+        table[size++] = fragment;
     }
 
     /**
-     * Pops top fragment from stack.
-     * @return Fragment from stack.
+     * Returns top fragment from stack.
+     * @return Fragment from the top of this stack.
      */
     public Fragment pop() {
-
-        return t[(size--) - 1];
+        return table[(size--) - 1];
     }
 
     /**
-     * Tells how many fragments are in the stack.
+     * Returns value describing number of fragments in this stack.
      * @return Size of the stack.
      */
     public int size() {

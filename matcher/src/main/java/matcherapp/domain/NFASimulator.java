@@ -4,7 +4,7 @@ import matcherapp.utils.StateList;
 
 
 /**
- * Simulates NFA and find out if we get a match with given String
+ * Simulates NFA to check if given input string is accepted or not.
  */
 public class NFASimulator {
 
@@ -13,27 +13,28 @@ public class NFASimulator {
     private int listID;
 
     /**
-     * Constructor
-     * @param startingState First state to begin with
+     * Constructor, takes the first state of the NFA as a parameter.
+     * @param startingState First state of the NFA.
      */
     public NFASimulator(State startingState) {
-        listID = (int) System.nanoTime() % Integer.MAX_VALUE;
+        listID = 1;
         addState(startingState);
         currentStates.addAll(nextStates.getAll());
         nextStates.clear();
     }
 
     /**
-     * Handles matching: moves to next step and rotates lists of states.
-     * @param text String to be matched to regex pattern
-     * @return True, if there is a match, false if not.
+     * Matches given input string against NFA given in the constructor method.
+     * Returns boolean value indicating if input string is accepted or not.
+     * @param text String to be matched
+     * @return True, if the string if accepted, false if not.
      */
     public boolean match(String text) {
 
         char[] chars = text.toCharArray();
 
         for (int i = 0; i < chars.length; i++) {
-            listID = (int) System.nanoTime() % Integer.MAX_VALUE;
+            listID += 1;
             step(chars[i]);
             currentStates.clear();
             currentStates.addAll(nextStates.getAll());
@@ -44,7 +45,8 @@ public class NFASimulator {
     }
 
     /**
-     * Single step for one character in the input string to be matched.
+     * Single step in the engine for one character in the input string.
+     * Checks for every current state, if character is accepted in that state and adds output into next list if that is the case.
      * @param c Character to be checked.
      */
     private void step(char c) {
@@ -56,8 +58,8 @@ public class NFASimulator {
     }
 
     /**
-     * Adds states to be handled in next step. Checks if state is null, in the list already, or split state.
-     * @param state State to be added.
+     * Adds state to the next step. Checks if state is null, in the list already, or split state, and handles them accordingly.
+     * @param state State to be added to the next list.
      */
     private void addState(State state) {
         if (state == null || state.isInList(listID)) {
@@ -74,8 +76,8 @@ public class NFASimulator {
     }
 
     /**
-     * Finds final matches from state lists.
-     * @return Returns true, if we hit the goal, false if not.
+     * Checks, if there is a state in the current states list, that is a final matching state.
+     * @return Returns true, one is found, false if not.
      */
     private boolean isMatch() {
         for (State s : currentStates.getAll()) {
