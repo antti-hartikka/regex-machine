@@ -1,7 +1,7 @@
 # regex-machine
 
-This project is for course Data Structures Lab, start of summer 2021. 
-In the following weeks, I will design and implement a regular expression engine.
+This project was part of course Data Structures Lab, start of summer 2021. 
+During the six week period, I designed and implemented a regular expression engine.
 
 ## Documentation
 
